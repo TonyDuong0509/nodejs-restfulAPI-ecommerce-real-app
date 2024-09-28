@@ -7,6 +7,10 @@ const {
 } = require("./../middlewares/authentication");
 
 const {
+  getSingleProductReviews,
+} = require("./../controllers/reviewController");
+
+const {
   createProduct,
   getAllProducts,
   getSingleProduct,
@@ -23,6 +27,8 @@ router
 router
   .route("/uploadImage")
   .post([authenticateUser, authorizePermissions("admin")], uploadImage);
+
+router.route("/:id/reviews").get(getSingleProductReviews);
 
 router
   .route("/:id")
