@@ -20,7 +20,7 @@ const getSingleProduct = async (req, res) => {
     path: "reviews",
   });
   if (!product)
-    throw new CustomError.BadRequestError(
+    throw new CustomError.NotFoundError(
       `Not found product with this ID: ${productId}`
     );
   res.status(StatusCodes.OK).json({ product });
@@ -33,7 +33,7 @@ const updateProduct = async (req, res) => {
     runValidators: true,
   });
   if (!product)
-    throw new CustomError.BadRequestError(
+    throw new CustomError.NotFoundError(
       `Not found product with this ID: ${productId}`
     );
   res.status(StatusCodes.OK).json({ product });
@@ -43,7 +43,7 @@ const deleteProduct = async (req, res) => {
   const { id: productId } = req.params;
   const product = await Product.findById({ _id: productId });
   if (!product)
-    throw new CustomError.BadRequestError(
+    throw new CustomError.NotFoundError(
       `Not found product with this ID: ${productId}`
     );
   await product.remove();
