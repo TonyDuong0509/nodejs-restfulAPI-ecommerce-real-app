@@ -1,19 +1,34 @@
 const CustomError = require("../errors");
+const Token = require("./../models/tokenModel");
 const { isTokenValid } = require("../utils/index");
+const { attachCookiesToResponse } = require("./../utils/index");
 
 const authenticateUser = async (req, res, next) => {
-  const token = req.signedCookies.token;
-
-  if (!token) {
-    throw new CustomError.UnauthenticatedError("Authentication Invalid !");
-  }
+  const { refreshToken, accessToken } = req.signedCookies;
   try {
-    const { payload } = isTokenValid({ token });
-    req.user = {
-      name: payload.name,
-      userId: payload.userId,
-      role: payload.role,
-    };
+    if (accessToken) {
+      const { payload } = isTokenValid(accessToken);
+      req.user = payload.user;
+      return next();
+    }
+
+    // If accessToken is expired
+    const { payload } = isTokenValid(refreshToken);
+
+    const existingToken = await Token.findOne({
+      user: payload.user.userId,
+      refreshToken: payload.refreshToken,
+    });
+    if (!existingToken || !existingToken?.isValid) {
+      throw new CustomError.UnauthenticatedError("Authentication Invalid !");
+    }
+    attachCookiesToResponse({
+      res,
+      user: payload.user,
+      refreshToken: payload,
+      refreshToken,
+    });
+    req.user = payload.user;
     next();
   } catch (error) {
     throw new CustomError.UnauthenticatedError("Authentication Invalid !");
